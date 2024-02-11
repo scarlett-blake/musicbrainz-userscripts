@@ -1,15 +1,15 @@
 // ==UserScript==
 // @name        Import Supraphonline releases into MusicBrainz
-// @namespace   https://github.com/murdos/musicbrainz-userscripts/
+// @namespace   https://github.com/scarlett-blake/musicbrainz-userscripts/
 // @version     2018.2.18.1
 // @description Add a button on Metal Archives release pages allowing to open MusicBrainz release editor with pre-filled data for the selected release
-// @downloadURL https://raw.github.com/murdos/musicbrainz-userscripts/master/supraphonline_importer.user.js
-// @update      https://raw.github.com/murdos/musicbrainz-userscripts/master/supraphonline_importer.user.js
+// @downloadURL https://raw.github.com/scarlett-blake/musicbrainz-userscripts/master/supraphonline_importer.user.js
+// @update      https://raw.github.com/scarlett-blake/musicbrainz-userscripts/master/supraphonline_importer.user.js
 // @include     http*://www.supraphonline.cz/album/*
 // @require     https://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.js
-// @require        https://raw.github.com/scarlett-blake/musicbrainz-userscripts/master/lib/mbimport.js
-// @require        https://raw.github.com/murdos/musicbrainz-userscripts/master/lib/mbimportstyle.js
-// @require        https://raw.github.com/murdos/musicbrainz-userscripts/master/lib/logger.js
+// @require        lib/mbimport.js
+// @require        lib/mbimportstyle.js
+// @require        lib/logger.js
 // @icon        https://raw.githubusercontent.com/murdos/musicbrainz-userscripts/master/assets/images/Musicbrainz_import_logo.png
 // ==/UserScript==
 
