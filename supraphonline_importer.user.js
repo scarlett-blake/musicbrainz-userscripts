@@ -123,31 +123,17 @@ function retrieveReleaseInfo(release_url) {
         } else if (child_span == 'Katalogové číslo:') {
             release_catno = value_without_span;
 
-        } else if (child_span == 'Nosič:') {
-
-            if (value_without_span in ReleaseFormat) {
-                release.format = value_without_span;
+        } else if (child_span == 'Nosič:' && value_without_span in ReleaseFormat) {
+                release.format = ReleaseFormat[value_without_span];
                 countries = ['CZ','SK'];
                 release.urls.push({
                     url: release_url,
-                    link_type: link_type.discography,
+                    link_type: MBImport.URL_TYPES.discography,
                 });
                 release.urls.push({
                     url: release_url,
-                    link_type: link_type.purchase_for_mail_order,
+                    link_type: MBImport.URL_TYPES.purchase_for_mail_order,
                 });
-            } else {
-                release.format = 'Digital media';
-                release.country = ['XW'];
-                release.urls.push({
-                    url: release_url,
-                    link_type: link_type.discography,
-                });
-                release.urls.push({
-                    url: release_url,
-                    link_type: link_type.purchase_for_download,
-                });
-            }
         }
 
 
@@ -173,6 +159,21 @@ function retrieveReleaseInfo(release_url) {
     });
 
     // push countries
+    console.log(countries)
+    if (countries == []) {
+
+        release.format = 'Digital media';
+        release.country = ['XW'];
+        release.urls.push({
+            url: release_url,
+            link_type: MBImport.URL_TYPES.discography,
+        });
+        release.urls.push({
+            url: release_url,
+            link_type: MBImport.URL_TYPES.purchase_for_download,
+        });
+    }
+
     countries.forEach(function(country_) {
         release.country.push({
             day: release.day,
