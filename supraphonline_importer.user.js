@@ -106,7 +106,7 @@ function retrieveReleaseInfo(release_url) {
 
         // handle release date
         if (child_span == 'Datum vydání:') {
-            console.log(value_without_span)
+
             let date_split = value_without_span.split(/\.\s|\./);
             release.day = date_split[0];
             release.month = date_split[1];
@@ -128,9 +128,25 @@ function retrieveReleaseInfo(release_url) {
             if (value_without_span in ReleaseFormat) {
                 release.format = value_without_span;
                 countries = ['CZ','SK'];
+                release.urls.push({
+                    url: release_url,
+                    link_type: link_type.discography,
+                });
+                release.urls.push({
+                    url: release_url,
+                    link_type: link_type.purchase_for_mail_order,
+                });
             } else {
                 release.format = 'Digital media';
                 release.country = ['XW'];
+                release.urls.push({
+                    url: release_url,
+                    link_type: link_type.discography,
+                });
+                release.urls.push({
+                    url: release_url,
+                    link_type: link_type.purchase_for_download,
+                });
             }
         }
 
@@ -166,111 +182,63 @@ function retrieveReleaseInfo(release_url) {
         });
     });
 
+    // table with tracks
+    tracklistTable = $('table.table-tracklist');
 
-    // let rdata = getGenericalData();
-    // let artists = getArtistsList();
-    // let joinphrase = '';
-    // if (artists.length > 1) {
-    //     if (rdata['Type'] == 'Split') {
-    //         joinphrase = ' / ';
-    //     } else {
-    //         joinphrase = ' & ';
-    //     }
-    // }
-    // for (let i = 0; i < artists.length; i++) {
-    //     release.artist_credit.push({
-    //         artist_name: artists[i],
-    //         credited_name: artists[i],
-    //         joinphrase: i != artists.length - 1 ? joinphrase : '',
-    //     });
-    // }
-    // release.title = $('h1.album_name').text();
+    // get all tracks, including medium separators, excluding garbage
+    tracklistArray = tracklistTable.find('tr.cd-header, tr.track:not(.track-none)')
 
-    // release = setreleasedate(release, rdata['Release date']);
-    // if ('Label' in rdata) {
-    //     // TODO: add case for multiple labels if such a case exist
-    //     let label = rdata['Label'];
-    //     let label_mbid = '';
-    //     if (label == 'Independent') {
-    //         label = '[no label]';
-    //         label_mbid = '157afde4-4bf5-4039-8ad2-5a15acc85176';
-    //     }
-    //     let catno = rdata['Catalog ID'];
-    //     if (catno == undefined || catno == 'N/A') {
-    //         catno = '';
-    //     }
-    //     release.labels.push({
-    //         name: label,
-    //         catno: catno,
-    //         mbid: label_mbid,
-    //     });
-    // }
+    let discNumber = 0;
+    let disc = {
+        tracks: [],
+        format: release.format,
+    };
+    release.discs.push(disc)
 
-    // if (rdata['Type'] in ReleaseTypes) {
-    //     let types = ReleaseTypes[rdata['Type']];
-    //     release.type = types[0];
-    //     // NOTE: secondary type may not be selected on MB editor, but it still works, a bug on MB side
-    //     release.secondary_types = types.slice(1);
-    // }
+    tracklistArray.each(function(index) {
 
-    // // FIXME: multiple vinyls ie. http://www.metal-archives.com/albums/Reverend_Bizarre/III%3A_So_Long_Suckers/415313
-    // if (rdata['Format'] in ReleaseFormat) {
-    //     release.format = ReleaseFormat[rdata['Format']];
-    // }
+        // check if the element is a medium separator
+        if ($(this).hasClass('cd-header')) {
+            // if it isn't the first medium, reset the disc dict
+            if (discNumber > 0) {
+                release.discs.push({
+                        tracks: [],
+                        format: release.format
+                });
+                // increment the medium
+            }
+            discNumber++;
 
-    // if ('Version desc.' in rdata) {
-    //     if (rdata['Version desc.'].indexOf('Digipak') != -1) {
-    //         release.packaging = 'Digipak';
-    //     }
-    //     if (release.format == 'CD' && rdata['Version desc.'] == 'CD-R') {
-    //         release.format = 'CD-R';
-    //     }
-    // }
+        // otherwise we expect it to be a track
+        } else if ($(this).hasClass('track')) {
 
-    // let identifiers = $('#album_tabs_notes > div:nth-child(2)').find('p:not([class])').contents();
-    // for (let j = 0; j < identifiers.length; j++) {
-    //     if (identifiers[j].textContent.indexOf('Barcode:') != -1) {
-    //         release.barcode = $.trim(identifiers[j].textContent.substring(8));
-    //         break;
-    //     }
-    // }
+            // find the table cells which contain track info within the row
+            let cells = $(this).find('td.small.text-center');
+            let trackNumber;
+            let trackTitle;
+            let trackDuration;
 
-    // // URLs
-    // let link_type = MBImport.URL_TYPES;
-    // release.urls.push({
-    //     url: release_url,
-    //     link_type: link_type.other_databases,
-    // });
+            // decide what to do for each cell
+            cells.each(function() {
+                // check the webpage source to see what these are about
+                if ($(this).find('[itemprop="name"]:first').length) {
+                    trackNumber = $(this).text().replace(/[\.\n\t]/g, '');
+                    trackTitle = $(this).find('[itemprop="name"]').attr('content');
+                } else if ($(this).find('[itemprop="duration"]:first').length) {
+                    trackDuration = $(this).text().replace(/[\n\t]/g, '');
+                }
+            });
 
-    // let releaseNumber = 0;
-    // let disc = {
-    //     tracks: [],
-    //     format: release.format,
-    // };
-    // release.discs.push(disc);
-
-    // let tracksline = $('table.table_lyrics tr.even,table.table_lyrics tr.odd');
-
-    // tracksline.each(function (index, element) {
-    //     let trackNumber = $.trim(element.children[0].textContent).replace('.', '');
-    //     if (trackNumber == '1' && trackNumber != index + 1) {
-    //         releaseNumber++;
-    //         release.discs.push({
-    //             tracks: [],
-    //             format: release.format,
-    //         });
-    //     }
-
-    //     // TODO: handling of split and compilation artists (artist - title)
-    //     let track = {
-    //         number: trackNumber,
-    //         title: $.trim(element.children[1].textContent.replace(/\s+/g, ' ')),
-    //         duration: $.trim(element.children[2].textContent),
-    //         artist_credit: [release.artist_credit],
-    //     };
-    //     release.discs[releaseNumber].tracks.push(track);
-    // });
-
+            // push the track into the current medium
+            let track = {
+                number: trackNumber,
+                title: trackTitle,
+                duration: trackDuration,
+                artist_credit: [release.artist_credit]
+            }
+            release.discs[discNumber-1].tracks.push(track)
+        }
+    });
 
     return release;
 }
