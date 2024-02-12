@@ -188,7 +188,7 @@ function retrieveReleaseInfo(release_url) {
     // get all tracks, including medium separators, excluding garbage
     tracklistArray = tracklistTable.find('tr.cd-header, tr.track:not(.track-none)')
 
-    let discNumber = 0;
+    let discNumber = 1;
     let disc = {
         tracks: [],
         format: release.format,
@@ -199,15 +199,18 @@ function retrieveReleaseInfo(release_url) {
 
         // check if the element is a medium separator
         if ($(this).hasClass('cd-header')) {
+            // don't do any of this if the first medium has a header
+            if (index > 0) {
+                discNumber++;
+            }
             // if it isn't the first medium, reset the disc dict
-            if (discNumber > 0) {
+            if (discNumber > 1) {
                 release.discs.push({
                         tracks: [],
                         format: release.format
                 });
                 // increment the medium
             }
-            discNumber++;
 
         // otherwise we expect it to be a track
         } else if ($(this).hasClass('track')) {
@@ -236,6 +239,7 @@ function retrieveReleaseInfo(release_url) {
                 duration: trackDuration,
                 artist_credit: [release.artist_credit]
             }
+
             release.discs[discNumber-1].tracks.push(track)
         }
     });
