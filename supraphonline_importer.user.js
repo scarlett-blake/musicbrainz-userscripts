@@ -167,7 +167,7 @@ function retrieveReleaseInfo(release_url) {
     if (release.format == '') {
 
         release.format = 'Digital media';
-        release.country = ['XW'];
+        countries = ['XW'];
         release.urls.push({
             url: release_url,
             link_type: MBImport.URL_TYPES.purchase_for_download,
