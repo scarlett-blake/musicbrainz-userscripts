@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Import Supraphonline releases into MusicBrainz
 // @namespace   https://github.com/scarlett-blake/musicbrainz-userscripts/
-// @version     2024.2.11
+// @version     2024.2.12
 // @description Add a button on Metal Archives release pages allowing to open MusicBrainz release editor with pre-filled data for the selected release
 // @download    https://raw.github.com/scarlett-blake/musicbrainz-userscripts/master/supraphonline_importer.user.js
 // @update      https://raw.github.com/scarlett-blake/musicbrainz-userscripts/master/supraphonline_importer.user.js
@@ -90,7 +90,7 @@ function retrieveReleaseInfo(release_url) {
     // loop over each item
     items.each(function () {
 
-        // the label (not release label, but the label text)
+        // the label (not release label, but the text labelling the value)
         let child_span = $(this).children('span').text();
 
         // the value without label text
@@ -112,37 +112,35 @@ function retrieveReleaseInfo(release_url) {
             release.month = date_split[1];
             release.year = date_split[2];
 
-            // handle release label
+        // handle release label
         } else if (child_span == 'Vydavatel:') {
 
             // split on slash, since that usually denotes multiple labels and
             // few labels contain a slash in their name
             labels = [...labels, ...value_without_span.split('/')];
 
-            // handle catno
+        // handle catno
         } else if (child_span == 'Katalogové číslo:') {
             release_catno = value_without_span;
 
         } else if (child_span == 'Nosič:' && value_without_span in ReleaseFormat) {
-                release.format = ReleaseFormat[value_without_span];
-                countries = ['CZ','SK'];
-                release.urls.push({
-                    url: release_url,
-                    link_type: MBImport.URL_TYPES.discography,
-                });
-                release.urls.push({
-                    url: release_url,
-                    link_type: MBImport.URL_TYPES.purchase_for_mail_order,
-                });
+            release.format = ReleaseFormat[value_without_span];
+            countries = ['CZ','SK'];
+            release.urls.push({
+                url: release_url,
+                link_type: MBImport.URL_TYPES.discography,
+            });
+            release.urls.push({
+                url: release_url,
+                link_type: MBImport.URL_TYPES.purchase_for_mail_order,
+            });
         }
-
-
     });
 
     // push release label and catno. Loop over all labels
     labels.forEach(function(label) {
 
-        let label_mbid = ''
+        let label_mbid = '';
 
         // check if label is one of the frequent ones
         if (label in LabelsMapping) {
@@ -158,8 +156,8 @@ function retrieveReleaseInfo(release_url) {
         });
     });
 
-    // push countries
-    console.log(countries)
+    // push worldwide and digital media in case countries is empty, which
+    // means there was no Nosič: (medium)
     if (countries == []) {
 
         release.format = 'Digital media';
@@ -233,15 +231,15 @@ function retrieveReleaseInfo(release_url) {
                 }
             });
 
-            // push the track into the current medium
+            // create the track dict
             let track = {
                 number: trackNumber,
                 title: trackTitle,
                 duration: trackDuration,
                 artist_credit: [release.artist_credit]
             }
-
-            release.discs[discNumber-1].tracks.push(track)
+            // push the track into the current medium
+            release.discs[discNumber-1].tracks.push(track);
         }
     });
 
@@ -270,59 +268,13 @@ function insertLink(release, release_url) {
     mbUI.slideDown();
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                   Metal Archives -> MusicBrainz mapping                                                   //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*
-release.type 	primary type release 	secondary release type
-on MA				on MB
-
-Full-length 		Album				Compilation
-Live album			Single				Demo
-Demo				EP					DJ-mix
-Single				Broadcast			Interview
-EP					Other				Live
-Video									Audiobook
-Boxed set								Mixtape/Street
-Split									Remix
-Video/VHS (legacy)						Soundtrack
-Compilation								Spokenword
-Split video
-*/
-
-//ReleaseTypes[MAtype]=["primary type","secondary type on mb"];
-var ReleaseTypes = {
-    'Full-length': ['album'],
-    'Live album': ['album', 'live'],
-    Demo: ['album', 'demo'],
-    Single: ['single'],
-    EP: ['ep'],
-    Compilation: ['album', 'compilation'],
-    Split: ['album'],
-    Collaboration: [''],
-};
-
-//ReleaseFormat[MAformat]="MBformat";
-// var ReleaseFormat = {
-//     CD: 'CD',
-//     '2CD': 'CD',
-//     Vinyl: 'Vinyl',
-//     '7" vinyl': '7" Vinyl',
-//     '7" vinyl (33⅓ RPM)': '7" Vinyl',
-//     '10" vinyl (33⅓ RPM)': '10" Vinyl',
-//     '10" vinyl': '10" Vinyl',
-//     '12" vinyl': '12" Vinyl',
-//     '2 12" vinyls': '12" Vinyl',
-//     '12" vinyl (33⅓ RPM)': '12" Vinyl',
-//     Cassette: 'Cassette',
-//     Digital: 'Digital Media',
-// };
-
+// medium format mapping
 var ReleaseFormat = {
     LP: 'Vinyl',
     CD: 'CD'
 }
 
+// label mapping for the most frequent labels
 var LabelsMapping = {
     'SUPRAPHON a.s.': 'ca7d624c-214c-4507-823f-972d96391625',
     'Prodejhudbu.cz': 'ca7d624c-214c-4507-823f-972d96391625',
