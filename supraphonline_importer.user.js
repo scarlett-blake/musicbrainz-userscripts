@@ -158,7 +158,7 @@ function retrieveReleaseInfo(release_url) {
 
     // push worldwide and digital media in case countries is empty, which
     // means there was no Nosič: (medium)
-    if (countries == []) {
+    if (countries.length == 0) {
 
         release.format = 'Digital media';
         release.country = ['XW'];
