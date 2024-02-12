@@ -104,6 +104,9 @@ function retrieveReleaseInfo(release_url) {
             value_without_span = value_without_span.slice(1);
         }
 
+        console.log(value_without_span+'    '+child_span)
+
+
         // handle release date
         if (child_span == 'Datum vydání:') {
 
@@ -123,13 +126,16 @@ function retrieveReleaseInfo(release_url) {
         } else if (child_span == 'Katalogové číslo:') {
             release_catno = value_without_span;
 
-        } else if (child_span == 'Nosič:' && value_without_span in ReleaseFormat) {
-            release.format = ReleaseFormat[value_without_span];
+        // handle medium format (country and URL types based on that too)
+        } else if (
+            (child_span == 'Nosič:' || child_span == 'Nosiče:') && value_without_span.match(/.*(CD|LP)/)) {
+            
+            if (value_without_span.match(/.*CD/)) {
+                release.format = ReleaseFormat['CD']
+            } else if (value_without_span.match(/.*LP/)) {
+                release.format = ReleaseFormat['LP'];
+            }
             countries = ['CZ','SK'];
-            release.urls.push({
-                url: release_url,
-                link_type: MBImport.URL_TYPES.discography,
-            });
             release.urls.push({
                 url: release_url,
                 link_type: MBImport.URL_TYPES.purchase_for_mail_order,
@@ -158,19 +164,20 @@ function retrieveReleaseInfo(release_url) {
 
     // push worldwide and digital media in case countries is empty, which
     // means there was no Nosič: (medium)
-    if (countries.length == 0) {
+    if (release.format == '') {
 
         release.format = 'Digital media';
         release.country = ['XW'];
         release.urls.push({
             url: release_url,
-            link_type: MBImport.URL_TYPES.discography,
-        });
-        release.urls.push({
-            url: release_url,
             link_type: MBImport.URL_TYPES.purchase_for_download,
         });
     }
+
+    release.urls.push({
+        url: release_url,
+        link_type: MBImport.URL_TYPES.discography,
+    });
 
     countries.forEach(function(country_) {
         release.country.push({
@@ -271,7 +278,7 @@ function insertLink(release, release_url) {
 // medium format mapping
 var ReleaseFormat = {
     LP: 'Vinyl',
-    CD: 'CD'
+    CD: 'CD',
 }
 
 // label mapping for the most frequent labels
