@@ -167,6 +167,7 @@ function retrieveReleaseInfo(release_url) {
     if (release.format == '') {
 
         release.format = 'Digital media';
+        release.packaging = 'None';
         countries = ['XW'];
         release.urls.push({
             url: release_url,
